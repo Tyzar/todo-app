@@ -30,6 +30,7 @@ android {
         }
     }
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -70,6 +71,13 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    //kotlin datetime
+    implementation(libs.kotlinx.datetime)
+
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
+    implementation(libs.compose.calendar)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

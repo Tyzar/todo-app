@@ -1,6 +1,6 @@
 package com.tyzar.test.todoapp.domain.entities
 
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 data class Todo(
     val id: Int,

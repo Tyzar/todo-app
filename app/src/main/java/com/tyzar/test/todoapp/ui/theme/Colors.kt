@@ -23,6 +23,8 @@ val onTertiaryContainerLight =
     Color(0xff261430)
 val surfaceLight = Color(0xfff8f9ff)
 val onSurfaceLight = Color(0xff191c20)
+val surfaceVariantLight = Color(0xfff4f6f6)
+val onSurfaceVariantLight = Color(0xff191c20)
 val errorLight = Color(0xffba1a1a)
 val onErrorLight = Color(0xffffffff)
 val errorContainerLight =

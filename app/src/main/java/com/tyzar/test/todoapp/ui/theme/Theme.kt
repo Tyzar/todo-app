@@ -26,6 +26,8 @@ val lightColorScheme =
         onErrorContainer = onErrorContainerLight,
         surface = surfaceLight,
         onSurface = onSurfaceLight,
+        surfaceVariant = surfaceVariantLight,
+        onSurfaceVariant = onSurfaceVariantLight,
         outline = outlineLight,
         scrim = scrimLight
     )

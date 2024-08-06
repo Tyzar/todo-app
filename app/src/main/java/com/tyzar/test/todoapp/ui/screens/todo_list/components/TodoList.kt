@@ -16,6 +16,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -35,7 +36,7 @@ fun TodoList(
     onTodoLongClicked: OnTodoLongClicked
 ) {
     LazyColumn(
-        modifier = modifier.padding(16.dp),
+        modifier = modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(count = todos.size, key = { todos[it].key }, contentType = {
@@ -45,8 +46,7 @@ fun TodoList(
                 is TodoItem.TodoData -> TodoListItem(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                        .height(100.dp),
                     todoItem = todoItem,
                     onClicked = {
                         onTodoClicked(todoItem.todo)
@@ -59,7 +59,7 @@ fun TodoList(
                 is TodoItem.TodoHeader -> TodoListHeader(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(top = 16.dp),
                     todoItem = todoItem
                 )
             }
@@ -88,7 +88,7 @@ fun TodoListItem(
             onLongClicked()
         }
     )) {
-        Row {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(modifier = Modifier.size(24.dp), checked = false, onCheckedChange = {})
             Spacer(modifier = Modifier.width(16.dp))
             Column(
