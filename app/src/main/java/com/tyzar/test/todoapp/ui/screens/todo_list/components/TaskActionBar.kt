@@ -9,9 +9,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.outlined.Clear
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -24,6 +28,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun TaskActionBar(
     modifier: Modifier = Modifier,
+    onCloseAction: () -> Unit,
     onReschedule: () -> Unit,
     onRequestDelete: () -> Unit
 ) {
@@ -32,8 +37,16 @@ fun TaskActionBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clickable { onCloseAction() },
+                imageVector = Icons.Outlined.Close,
+                contentDescription = "cancel"
+            )
+            Spacer(modifier = Modifier.weight(1f))
             Column(
                 modifier = Modifier.clickable { onReschedule() },
                 verticalArrangement = Arrangement.Center,
@@ -45,9 +58,9 @@ fun TaskActionBar(
                     contentDescription = "reschedule"
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "Reschedule", style = MaterialTheme.typography.labelLarge)
+                Text(text = "Reschedule", style = MaterialTheme.typography.bodySmall)
             }
-
+            Spacer(modifier = Modifier.width(16.dp))
             Column(
                 modifier = Modifier.clickable { onRequestDelete() },
                 verticalArrangement = Arrangement.Center,
@@ -61,7 +74,7 @@ fun TaskActionBar(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Delete", style = MaterialTheme.typography.labelLarge.copy(
+                    text = "Delete", style = MaterialTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.error
                     )
                 )

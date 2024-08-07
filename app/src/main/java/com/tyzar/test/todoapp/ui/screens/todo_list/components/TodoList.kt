@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +46,7 @@ typealias OnTodoLongClicked = (task: Task) -> Unit
 fun TodoList(
     modifier: Modifier = Modifier,
     todos: Map<LocalDate, List<Task>>,
-    pagingState: MtrPageState<AppError, Task>,
+    selectedTask: Task? = null,
     onRequestComplete: OnRequestComplete,
     onTodoLongClicked: OnTodoLongClicked,
     onRequestLoadPage: () -> Unit,
@@ -66,37 +67,14 @@ fun TodoList(
             items(count = dateGroup.value.size, key = { dateGroup.value[it].id }) {
                 TodoListItem(
                     modifier = Modifier
-                        .background(color = MaterialTheme.colorScheme.surface)
                         .padding(horizontal = 16.dp),
                     task = dateGroup.value[it],
+                    isSelected = selectedTask != null && selectedTask.id == dateGroup.value[it].id,
                     onChecked = {
                         onRequestComplete(dateGroup.value[it])
                     },
                     onLongClicked = { onTodoLongClicked(dateGroup.value[it]) }
                 )
-            }
-        }
-
-        if (pagingState.pageResult is PageResult.Loading) {
-            item {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(modifier = Modifier.size(60.dp))
-                }
-            }
-        } else if (pagingState.pageResult is PageResult.Error) {
-            item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(text = pagingState.pageResult.error?.errMsg ?: "An error occurred")
-                    Spacer(modifier = Modifier.height(16.dp))
-                    AppContainedButton(
-                        label = "Reload",
-                        shape = MaterialTheme.shapes.small,
-                        onClick = onRequestLoadPage
-                    )
-                }
             }
         }
     }
@@ -107,6 +85,7 @@ fun TodoListHeader(modifier: Modifier = Modifier, date: LocalDate) {
     Surface(modifier) {
         Text(
             modifier = Modifier
+                .background(color = MaterialTheme.colorScheme.surfaceVariant)
                 .fillMaxWidth()
                 .padding(16.dp),
             text = formatDate(date, displayOnlyDateFormat)
@@ -119,6 +98,7 @@ fun TodoListHeader(modifier: Modifier = Modifier, date: LocalDate) {
 fun TodoListItem(
     modifier: Modifier = Modifier,
     task: Task,
+    isSelected: Boolean = false,
     onChecked: () -> Unit,
     onLongClicked: () -> Unit
 ) {
@@ -131,7 +111,10 @@ fun TodoListItem(
                 haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 onLongClicked()
             }
-        )) {
+        ), colors = CardDefaults.cardColors().copy(
+        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.surface
+    )) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Checkbox(modifier = Modifier.size(24.dp), checked = task.isDone, onCheckedChange = {
                 if (it && !task.isDone) {

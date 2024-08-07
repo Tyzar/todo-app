@@ -57,7 +57,7 @@ val darkColorScheme = darkColorScheme(
 
 @Composable
 fun TodoAppTheme(
-    useDarkTheme: Boolean = isSystemInDarkTheme(),
+    useDarkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val selectedColorScheme =

@@ -57,7 +57,6 @@ fun AddTodoScreen(navController: NavHostController, addTodoVM: AddTodoVM, toDoLi
         if (formState.saveStatus is SaveStatus.Error) {
             snackBarHostState.showSnackbar((formState.saveStatus as SaveStatus.Error).error.errMsg)
         } else if (formState.saveStatus == SaveStatus.Success) {
-            snackBarHostState.showSnackbar("Task saved successfully")
             toDoListVM.notify(ToDoListEvent.Refresh)
             navController.popBackStack()
         }

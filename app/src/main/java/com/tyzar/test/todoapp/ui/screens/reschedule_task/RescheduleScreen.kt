@@ -76,8 +76,6 @@ fun RescheduleScreen(
             }
 
             RescheduleTaskStatus.Success -> {
-                snackBarHostState.showSnackbar("Success reschedule task")
-                toDoListVM.notify(ToDoListEvent.SelectTask(null))
                 toDoListVM.notify(ToDoListEvent.Refresh)
                 navHostController.popBackStack()
             }

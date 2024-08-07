@@ -1,5 +1,6 @@
 package com.tyzar.test.todoapp.ui.viewmodels.todolist
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.nokotogi.mantra.compose.paging.controller.MtrPageController
@@ -35,21 +36,23 @@ class ToDoListVM @Inject constructor(private val taskRepository: TaskRepository)
         }
     )
 
-    val pagingState = pagingController.state
+    init {
+        notify(ToDoListEvent.Load)
+    }
 
     fun notify(event: ToDoListEvent) {
         when (event) {
-            is ToDoListEvent.CompleteTask -> handleCompleteTask(event.taskId)
-            is ToDoListEvent.DeleteTask -> handleDeleteTask(event.taskId)
+            is ToDoListEvent.CompleteTask -> handleCompleteTask(event.task)
+            is ToDoListEvent.DeleteTask -> handleDeleteTask(event.task)
             ToDoListEvent.Load -> {
                 viewModelScope.launch {
                     pagingController.loadPage()
                 }
             }
 
-            is ToDoListEvent.RescheduleTask -> {}
             ToDoListEvent.Refresh -> {
                 viewModelScope.launch {
+                    mToDoListState.value = ToDoListState()
                     pagingController.refreshPage()
                 }
             }
@@ -62,9 +65,30 @@ class ToDoListVM @Inject constructor(private val taskRepository: TaskRepository)
         }
     }
 
-    private fun handleCompleteTask(taskId: String) {
+    private fun handleCompleteTask(task: Task) {
         viewModelScope.launch {
-            val result = taskRepository.setComplete(taskId)
+            val dateGroup = mToDoListState.value.dateGroup.toMutableMap()
+            val date = task.dateTime.toLocalDate()
+            val dateList = mutableListOf<Task>().apply { addAll(dateGroup[date]!!) }
+            val selectedTaskIdx = dateList.indexOfFirst { e -> e.id == task.id }
+            if (selectedTaskIdx == -1) {
+                return@launch
+            }
+
+            dateList[selectedTaskIdx] = dateList[selectedTaskIdx].copy(
+                isDone = true
+            )
+            dateGroup[date] = dateList
+
+            if (mToDoListState.value.dateGroup == dateGroup) {
+                Log.d("Fakkk", "Seriously it is same??")
+            }
+
+            mToDoListState.value = mToDoListState.value.copy(
+                dateGroup = dateGroup
+            )
+
+            val result = taskRepository.setComplete(task.id)
             when (result) {
                 is Either.Left -> mToDoListState.value = mToDoListState.value.copy(
                     completeTaskStatus = CompleteTaskStatus.Error
@@ -74,8 +98,6 @@ class ToDoListVM @Inject constructor(private val taskRepository: TaskRepository)
                     mToDoListState.value = mToDoListState.value.copy(
                         completeTaskStatus = CompleteTaskStatus.Success
                     )
-
-                    notify(ToDoListEvent.Refresh)
                 }
             }
         }
@@ -116,8 +138,8 @@ class ToDoListVM @Inject constructor(private val taskRepository: TaskRepository)
         }
     }
 
-    private fun handleDeleteTask(taskId: String) {
-        if (taskId != mToDoListState.value.selectedTask?.id) {
+    private fun handleDeleteTask(task: Task) {
+        if (task.id != mToDoListState.value.selectedTask?.id) {
             return
         }
 
@@ -126,7 +148,19 @@ class ToDoListVM @Inject constructor(private val taskRepository: TaskRepository)
                 deleteTaskStatus = DeleteTaskStatus.Progress
             )
 
-            val result = taskRepository.deleteTask(taskId)
+            val dateGroup = mToDoListState.value.dateGroup
+            val dateKey = task.dateTime.toLocalDate()
+            val selectedTask = dateGroup[dateKey]?.find { e -> e.id == task.id }
+            if (selectedTask == null) {
+                return@launch
+            }
+
+            dateGroup[dateKey]?.remove(selectedTask)
+            mToDoListState.value = mToDoListState.value.copy(
+                dateGroup = dateGroup
+            )
+
+            val result = taskRepository.deleteTask(task.id)
             when (result) {
                 is Either.Left -> {
                     mToDoListState.value = mToDoListState.value.copy(
@@ -140,8 +174,6 @@ class ToDoListVM @Inject constructor(private val taskRepository: TaskRepository)
                         deleteTaskStatus = DeleteTaskStatus.Success,
                         selectedTask = null
                     )
-
-                    notify(ToDoListEvent.Refresh)
                 }
             }
         }

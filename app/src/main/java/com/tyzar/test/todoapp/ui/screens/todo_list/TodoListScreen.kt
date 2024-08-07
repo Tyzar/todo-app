@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -40,7 +41,6 @@ import com.tyzar.test.todoapp.ui.viewmodels.todolist.ToDoListVM
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(navController: NavHostController, toDoListVM: ToDoListVM) {
-    val pagingState by toDoListVM.pagingState.collectAsStateWithLifecycle()
     val toDoListState by toDoListVM.toDoListState.collectAsStateWithLifecycle()
 
     var showTaskAction by remember {
@@ -54,12 +54,6 @@ fun TodoListScreen(navController: NavHostController, toDoListVM: ToDoListVM) {
 
     val snackBarHostState = remember {
         SnackbarHostState()
-    }
-
-    LaunchedEffect(pagingState.pageResult) {
-        if (pagingState.pageResult is PageResult.Initial) {
-            toDoListVM.notify(ToDoListEvent.Load)
-        }
     }
 
     LaunchedEffect(toDoListState.deleteTaskStatus) {
@@ -78,11 +72,16 @@ fun TodoListScreen(navController: NavHostController, toDoListVM: ToDoListVM) {
             SnackbarHost(hostState = snackBarHostState)
         },
         topBar = {
-            TodolistTopBar(title = "To Do List", onAddTodoClick = {
-                navController.navigate(routeAddTodo)
-            })
-        }, bottomBar = {
-            if (!showTaskAction) Box(modifier = Modifier.size(0.dp)) else TaskActionBar(
+            if (!showTaskAction) TodolistTopBar(
+                modifier = Modifier.background(color = Color.White),
+                title = "To Do List",
+                onAddTodoClick = {
+                    navController.navigate(routeAddTodo)
+                }) else TaskActionBar(
+                onCloseAction = {
+                    showTaskAction = false
+                    toDoListVM.notify(ToDoListEvent.SelectTask(null))
+                },
                 onReschedule = {
                     showTaskAction = false
                     navController.navigate("$routeReschedule/${toDoListState.selectedTask?.id}")
@@ -95,12 +94,12 @@ fun TodoListScreen(navController: NavHostController, toDoListVM: ToDoListVM) {
         TodoList(modifier = Modifier
             .fillMaxSize()
             .padding(padding), todos = toDoListState.dateGroup,
-            pagingState = pagingState,
+            selectedTask = toDoListState.selectedTask,
             onRequestLoadPage = {
                 toDoListVM.notify(ToDoListEvent.Load)
             },
             onRequestComplete = {
-                toDoListVM.notify(ToDoListEvent.CompleteTask(it.id))
+                toDoListVM.notify(ToDoListEvent.CompleteTask(it))
             }, onTodoLongClicked = {
                 toDoListVM.notify(ToDoListEvent.SelectTask(it))
                 showTaskAction = true
@@ -119,7 +118,7 @@ fun TodoListScreen(navController: NavHostController, toDoListVM: ToDoListVM) {
                 toDoListVM.notify(ToDoListEvent.SelectTask(null))
             }, onConfirm = {
                 showDeleteTaskSheet = false
-                toDoListVM.notify(ToDoListEvent.DeleteTask(it.id))
+                toDoListVM.notify(ToDoListEvent.DeleteTask(it))
             })
     }
 
