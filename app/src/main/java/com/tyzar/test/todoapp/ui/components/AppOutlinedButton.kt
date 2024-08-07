@@ -11,9 +11,10 @@ fun AppOutlinedButton(
     modifier: Modifier = Modifier,
     label: String,
     shape: Shape,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    OutlinedButton(modifier = modifier, shape = shape, onClick = onClick) {
+    OutlinedButton(modifier = modifier, enabled = enabled, shape = shape, onClick = onClick) {
         Text(text = label)
     }
 }

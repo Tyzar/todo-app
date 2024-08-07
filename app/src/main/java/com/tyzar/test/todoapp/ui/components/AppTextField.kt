@@ -48,7 +48,7 @@ fun AppTextField(
         value = value,
         onValueChange = onValueChanged,
         textStyle = MaterialTheme.typography.bodyLarge.copy(
-            color = Color(0xffb5b8bf),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.SemiBold
         ),
         enabled = onClick == null && enabled,

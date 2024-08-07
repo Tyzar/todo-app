@@ -1,9 +1,9 @@
 package com.tyzar.test.todoapp.ui.screens.todo_list.format
 
-import com.tyzar.test.todoapp.domain.entities.Todo
-import kotlinx.datetime.LocalDateTime
+import com.tyzar.test.todoapp.domain.entities.Task
+import java.time.LocalDate
 
-sealed class TodoItem(open val key: Int) {
-    data class TodoHeader(override val key: Int, val dateTime: LocalDateTime) : TodoItem(key)
-    data class TodoData(override val key: Int, val todo: Todo) : TodoItem(key)
+sealed class TodoItem(open val key: String) {
+    data class TodoHeader(override val key: String, val date: LocalDate) : TodoItem(key)
+    data class TodoData(override val key: String, val task: Task) : TodoItem(key)
 }

@@ -18,6 +18,8 @@ fun ConfirmSection(
     modifier: Modifier = Modifier,
     negativeText: String,
     positiveText: String,
+    enabledPositive: Boolean = true,
+    enabledNegative: Boolean = true,
     onNegative: () -> Unit,
     onPositive: () -> Unit
 ) {
@@ -32,12 +34,14 @@ fun ConfirmSection(
                 modifier = Modifier.weight(1f, true),
                 label = negativeText,
                 shape = MaterialTheme.shapes.small,
+                enabled = enabledNegative,
                 onClick = onNegative
             )
             Spacer(modifier = Modifier.width(16.dp))
             AppContainedButton(
                 modifier = Modifier.weight(1f, true),
                 label = positiveText,
+                enabled = enabledPositive,
                 shape = MaterialTheme.shapes.small,
                 onClick = onPositive
             )

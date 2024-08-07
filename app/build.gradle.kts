@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    alias(libs.plugins.dev.ksp)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.androidx.room)
 }
 
 android {
@@ -31,7 +34,7 @@ android {
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
@@ -42,6 +45,9 @@ android {
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.3"
+    }
+    room {
+        schemaDirectory("$projectDir/db-schemas")
     }
     packaging {
         resources {
@@ -72,12 +78,22 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    //kotlin datetime
-    implementation(libs.kotlinx.datetime)
-
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     implementation(libs.compose.calendar)
+
+    implementation(libs.mantra.either)
+    implementation(libs.mantra.compose.paging)
+
+    //room
+    implementation(libs.bundles.room)
+    annotationProcessor(libs.room.compiler)
+    ksp(libs.room.compiler)
+
+    //hilt
+    implementation(libs.bundles.hilt)
+    ksp(libs.dagger.hilt.compiler)
+    ksp(libs.androidx.hilt.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

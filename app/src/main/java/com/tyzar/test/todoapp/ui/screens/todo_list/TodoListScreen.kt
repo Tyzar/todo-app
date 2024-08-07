@@ -1,128 +1,137 @@
 package com.tyzar.test.todoapp.ui.screens.todo_list
 
-import android.os.Build
-import android.util.Log
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.tyzar.test.todoapp.domain.entities.Todo
+import com.nokotogi.mantra.compose.paging.states.PageResult
 import com.tyzar.test.todoapp.ui.routeAddTodo
+import com.tyzar.test.todoapp.ui.routeReschedule
+import com.tyzar.test.todoapp.ui.screens.todo_list.components.DeleteTaskSheet
+import com.tyzar.test.todoapp.ui.screens.todo_list.components.TaskActionBar
 import com.tyzar.test.todoapp.ui.screens.todo_list.components.TodoList
 import com.tyzar.test.todoapp.ui.screens.todo_list.components.TodolistTopBar
-import com.tyzar.test.todoapp.ui.screens.todo_list.format.TodoItem
-import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration
+import com.tyzar.test.todoapp.ui.viewmodels.todolist.DeleteTaskStatus
+import com.tyzar.test.todoapp.ui.viewmodels.todolist.ToDoListEvent
+import com.tyzar.test.todoapp.ui.viewmodels.todolist.ToDoListVM
 
-val timeZone = TimeZone.currentSystemDefault()
-val now = Clock.System.now().toLocalDateTime(timeZone)
-val tomorrow = now.toInstant(TimeZone.currentSystemDefault()).plus(1, DateTimeUnit.DAY, timeZone)
-val todos = listOf(
-    TodoItem.TodoHeader(1, now),
-    TodoItem.TodoData(
-        2, Todo(
-            id = 1,
-            title = "Todo 1",
-            desc = "This is a desc on todo 23",
-            dateTime = now
-        )
-    ),
-    TodoItem.TodoData(
-        3, Todo(
-            id = 2,
-            title = "Todo 2",
-            desc = "This is a desc on todo 23",
-            dateTime = now
-        )
-    ),
-    TodoItem.TodoData(
-        4, Todo(
-            id = 3,
-            title = "Todo 3",
-            desc = "This is a desc on todo 23",
-            dateTime = now
-        )
-    ),
-    TodoItem.TodoHeader(5, now),
-    TodoItem.TodoData(
-        6, Todo(
-            id = 4,
-            title = "Todo 4",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-    TodoItem.TodoData(
-        7, Todo(
-            id = 5,
-            title = "Todo 5",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-    TodoItem.TodoData(
-        8, Todo(
-            id = 6,
-            title = "Todo 6",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-    TodoItem.TodoData(
-        9, Todo(
-            id = 7,
-            title = "Todo 6",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-    TodoItem.TodoData(
-        10, Todo(
-            id = 8,
-            title = "Todo 6",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-    TodoItem.TodoData(
-        11, Todo(
-            id = 9,
-            title = "Todo 6",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-    TodoItem.TodoData(
-        12, Todo(
-            id = 10,
-            title = "Todo 6",
-            desc = "This is a desc on todo 23",
-            dateTime = tomorrow.toLocalDateTime(timeZone)
-        )
-    ),
-)
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoListScreen(navController: NavHostController) {
-    Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-        TodolistTopBar(title = "To Do List", onAddTodoClick = {
-            navController.navigate(routeAddTodo)
-        })
-    }) { padding ->
+fun TodoListScreen(navController: NavHostController, toDoListVM: ToDoListVM) {
+    val pagingState by toDoListVM.pagingState.collectAsStateWithLifecycle()
+    val toDoListState by toDoListVM.toDoListState.collectAsStateWithLifecycle()
+
+    var showTaskAction by remember {
+        mutableStateOf(false)
+    }
+
+    var showDeleteTaskSheet by remember {
+        mutableStateOf(false)
+    }
+    val deleteTaskSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    val snackBarHostState = remember {
+        SnackbarHostState()
+    }
+
+    LaunchedEffect(pagingState.pageResult) {
+        if (pagingState.pageResult is PageResult.Initial) {
+            toDoListVM.notify(ToDoListEvent.Load)
+        }
+    }
+
+    LaunchedEffect(toDoListState.deleteTaskStatus) {
+        if (toDoListState.deleteTaskStatus == DeleteTaskStatus.Error) {
+            snackBarHostState.showSnackbar("Failed to delete task")
+        } else if (toDoListState.deleteTaskStatus == DeleteTaskStatus.Success) {
+            snackBarHostState.showSnackbar("Success delete task")
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colorScheme.surface),
+        snackbarHost = {
+            SnackbarHost(hostState = snackBarHostState)
+        },
+        topBar = {
+            TodolistTopBar(title = "To Do List", onAddTodoClick = {
+                navController.navigate(routeAddTodo)
+            })
+        }, bottomBar = {
+            if (!showTaskAction) Box(modifier = Modifier.size(0.dp)) else TaskActionBar(
+                onReschedule = {
+                    showTaskAction = false
+                    navController.navigate("$routeReschedule/${toDoListState.selectedTask?.id}")
+                },
+                onRequestDelete = {
+                    showTaskAction = false
+                    showDeleteTaskSheet = true
+                })
+        }) { padding ->
         TodoList(modifier = Modifier
             .fillMaxSize()
-            .padding(padding), todos = todos, onTodoClicked = {
-            Log.d("TODO", "Click...")
-        }, onTodoLongClicked = {
-            Log.d("TODO", "Long Click...")
-        })
+            .padding(padding), todos = toDoListState.dateGroup,
+            pagingState = pagingState,
+            onRequestLoadPage = {
+                toDoListVM.notify(ToDoListEvent.Load)
+            },
+            onRequestComplete = {
+                toDoListVM.notify(ToDoListEvent.CompleteTask(it.id))
+            }, onTodoLongClicked = {
+                toDoListVM.notify(ToDoListEvent.SelectTask(it))
+                showTaskAction = true
+            })
+    }
+
+    if (showDeleteTaskSheet && toDoListState.selectedTask != null) {
+        DeleteTaskSheet(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(240.dp),
+            sheetState = deleteTaskSheetState,
+            task = toDoListState.selectedTask!!,
+            onCancel = {
+                showDeleteTaskSheet = false
+                toDoListVM.notify(ToDoListEvent.SelectTask(null))
+            }, onConfirm = {
+                showDeleteTaskSheet = false
+                toDoListVM.notify(ToDoListEvent.DeleteTask(it.id))
+            })
+    }
+
+    if (toDoListState.deleteTaskStatus == DeleteTaskStatus.Progress) {
+        Dialog(onDismissRequest = { }) {
+            Box(contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(20.dp)
+                )
+            }
+        }
     }
 }

@@ -11,9 +11,10 @@ fun AppContainedButton(
     modifier: Modifier = Modifier,
     label: String,
     shape: Shape,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
-    ElevatedButton(modifier = modifier, shape = shape, onClick = onClick) {
+    ElevatedButton(modifier = modifier, enabled = enabled, shape = shape, onClick = onClick) {
         Text(text = label)
     }
 }

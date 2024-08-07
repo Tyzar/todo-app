@@ -60,7 +60,7 @@ fun DatePickerSheet(
     onSave: (selectedDate: LocalDate?) -> Unit
 ) {
     AppModalSheet(
-        modifier = modifier.height(620.dp),
+        modifier = modifier,
         sheetState = sheetState,
         title = "Set Date",
         onDismissRequest = onDismissRequest

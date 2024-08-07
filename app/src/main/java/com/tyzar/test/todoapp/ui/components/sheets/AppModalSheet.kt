@@ -21,6 +21,7 @@ fun AppModalSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState,
     title: String,
+    useTitleSeparator: Boolean = true,
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -29,12 +30,14 @@ fun AppModalSheet(
         sheetState = sheetState,
         onDismissRequest = onDismissRequest
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
             Text(text = title, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(20.dp))
-            HorizontalDivider(thickness = 0.9.dp)
+            if (useTitleSeparator) HorizontalDivider(thickness = 0.7.dp)
             content()
         }
     }

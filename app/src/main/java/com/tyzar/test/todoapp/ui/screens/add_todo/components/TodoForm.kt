@@ -1,7 +1,6 @@
 package com.tyzar.test.todoapp.ui.screens.add_todo.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,18 +20,27 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.tyzar.test.todoapp.R
-import com.tyzar.test.todoapp.domain.entities.Todo
+import com.tyzar.test.todoapp.core.formatter.displayOnlyDateFormat
+import com.tyzar.test.todoapp.core.formatter.displayOnlyTimeFormat
+import com.tyzar.test.todoapp.core.formatter.formatDate
+import com.tyzar.test.todoapp.core.formatter.formatTime
 import com.tyzar.test.todoapp.ui.components.AppTextField
+import com.tyzar.test.todoapp.ui.viewmodels.add_todo.AddTodoState
+import com.tyzar.test.todoapp.ui.viewmodels.add_todo.SaveStatus
 
 typealias OnRequestShowDatePicker = () -> Unit
 typealias OnRequestShowTimePicker = () -> Unit
+typealias OnToggleUseTime = (Boolean) -> Unit
+typealias OnFieldChanged = (String, String) -> Unit
 
 @Composable
 fun TodoForm(
     modifier: Modifier = Modifier,
-    formData: Todo? = null,
+    formData: AddTodoState,
     onRequestShowDatePicker: OnRequestShowDatePicker,
-    onRequestShowTimePicker: OnRequestShowTimePicker
+    onRequestShowTimePicker: OnRequestShowTimePicker,
+    onToggleUseTime: OnToggleUseTime,
+    onFieldChanged: OnFieldChanged
 ) {
     Column(
         modifier = modifier
@@ -45,9 +53,12 @@ fun TodoForm(
         AppTextField(
             modifier = Modifier.fillMaxWidth(),
             placeholder = "Title Task",
+            enabled = formData.saveStatus != SaveStatus.Loading,
             singleLine = true,
-            value = "",
-            onValueChanged = {})
+            value = formData.title,
+            onValueChanged = {
+                onFieldChanged(AddTodoState.TITLE, it)
+            })
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(text = "Description", style = MaterialTheme.typography.titleMedium)
@@ -56,9 +67,12 @@ fun TodoForm(
             modifier = Modifier.fillMaxWidth(),
             minLines = 4,
             maxLines = 4,
-            value = "",
+            enabled = formData.saveStatus != SaveStatus.Loading,
+            value = formData.desc,
             placeholder = "Description Task",
-            onValueChanged = { })
+            onValueChanged = {
+                onFieldChanged(AddTodoState.DESC, it)
+            })
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(text = "Date", style = MaterialTheme.typography.titleMedium)
@@ -68,12 +82,18 @@ fun TodoForm(
                 .fillMaxWidth(),
             placeholder = "Select Date",
             readOnly = true,
+            enabled = formData.saveStatus != SaveStatus.Loading,
             singleLine = true,
-            value = "",
+            value = if (formData.date == null) "" else formatDate(
+                formData.date,
+                displayOnlyDateFormat
+            ),
             onClick = {
                 onRequestShowDatePicker()
             },
-            onValueChanged = {})
+            onValueChanged = {
+
+            })
         Spacer(modifier = Modifier.height(20.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -86,7 +106,26 @@ fun TodoForm(
             Spacer(modifier = Modifier.width(20.dp))
             Text(text = "Time", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.weight(1f, true))
-            Switch(checked = false, onCheckedChange = {})
+            Switch(checked = formData.useTime, onCheckedChange = onToggleUseTime)
         }
+        Spacer(modifier = Modifier.height(12.dp))
+        if (formData.useTime) {
+            AppTextField(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                placeholder = "Set Time",
+                readOnly = true,
+                enabled = formData.saveStatus != SaveStatus.Loading,
+                singleLine = true,
+                value = if (formData.time == null) "" else formatTime(
+                    formData.time,
+                    displayOnlyTimeFormat
+                ),
+                onClick = {
+                    onRequestShowTimePicker()
+                },
+                onValueChanged = {})
+        }
+        Spacer(modifier = Modifier.height(if (formData.useTime) 20.dp else 8.dp))
     }
 }
